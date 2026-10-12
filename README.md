@@ -63,6 +63,12 @@ $panel->plugin(ShippingFilamentPlugin::make());
 composer test
 ```
 
+## Releases & automatic updates
+
+Same flow as the core package: maintainer pushes a tag (`git tag v0.1.0 && git push --tags`) → GitHub Action creates the Release → Packagist auto-syncs (one-time setup: submit at <https://packagist.org/packages/submit> with `https://github.com/AdaaSystem/shipping-filament`, then authorize the Packagist GitHub App at <https://packagist.org/profile>). Consumers update with `composer update adaa/shipping-filament`. CI (PHP 8.3–8.5) and weekly Dependabot PRs are already wired.
+
+**Version pairing:** this package follows the core `adaa/shipping` version — tag matching versions together (e.g. core `v0.1.0` with filament `v0.1.0`).
+
 ## License
 
 MIT
