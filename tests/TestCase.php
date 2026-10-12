@@ -13,4 +13,10 @@ abstract class TestCase extends BaseTestCase
     {
         return [ShippingFilamentServiceProvider::class];
     }
+
+    protected function getEnvironmentSetUp($app): void
+    {
+        $app['config']->set('database.default', 'testing');
+        $app['config']->set('app.key', 'base64:'.base64_encode(str_repeat('t', 32)));
+    }
 }
