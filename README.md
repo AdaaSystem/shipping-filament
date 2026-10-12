@@ -1,19 +1,33 @@
-# Adaa Shipping Filament — واجهة الإدارة الاختيارية
+# Adaa Shipping Filament
 
-> Optional Filament admin UI for [`adaa/shipping`](https://github.com/AdaaSystem/shipping).
-> حزمة اختيارية تمامًا — المكتبة الأساسية كاملة بدونها.
+> **English** | [العربية](README.ar.md)
 
-## التثبيت | Installation
+Optional Filament admin UI for [`adaa/shipping`](https://github.com/AdaaSystem/shipping). The core library is complete without it — install this package only if you run a Filament panel.
+
+## What it provides
+
+- **Shipping connections management** — platform-owned and merchant-owned carrier accounts, with credentials editable **only on create** and never displayed in tables, infolists, or edit forms.
+- **Shipments browser** — read-only tracking views with copyable tracking numbers, status badges, carrier filters, and credential-safe metadata display (`MetaRedactor` masks any `*pass*`, `*secret*`, `*token*`, `*key*` values, including nested ones).
+- **Merchant scoping** — list queries are filtered by the current merchant whenever the host model exposes a `merchant()` relationship, so a merchant never sees another merchant's connections.
+- **Zero-config hiding** — resources stay unregistered until both host models are configured.
+
+## Requirements
+
+- PHP `^8.3`, `filament/filament ^5.0`, `adaa/shipping` (any corresponding version).
+
+## Installation
 
 ```bash
 composer require adaa/shipping adaa/shipping-filament
 php artisan vendor:publish --tag=shipping-filament-config
 ```
 
-## الإعداد | Configuration
+## Configuration
+
+Point the package at **your** Eloquent models (the core is framework-agnostic and ships none):
 
 ```php
-// config/shipping-filament.php — أو عبر .env
+// config/shipping-filament.php — or via .env
 'connection_model' => \App\Models\ShippingConnection::class,
 'shipment_model' => \App\Models\ShippingShipment::class,
 ```
@@ -23,7 +37,13 @@ SHIPPING_CONNECTION_MODEL=App\Models\ShippingConnection
 SHIPPING_SHIPMENT_MODEL=App\Models\ShippingShipment
 ```
 
-## التسجيل في اللوحة | Panel registration
+### Host-model contract
+
+**Connection model** — expected attributes: `merchant_id?`, `carrier_code`, `mode` (`platform|merchant`), `environment` (`sandbox|production`), `credentials` (recommended cast: `encrypted:array`), `status` (`active|inactive|invalid`), `origin_country?`, `external_account_id?`, `last_validated_at?`. Optional `merchant(): BelongsTo` enables the relationship picker **and** automatic scoping; without it, a plain numeric id field is used and no scoping is applied. Merchant resolution order: explicit `::merchantIdUsing()` resolver → Filament tenant (when `tenancy_aware`) → none.
+
+**Shipment model** — expected attributes: `order_id?`, `shipping_connection_id?`, `carrier_code`, `tracking_number?`, `status` (an `Adaa\Shipping\Enums\ShipmentStatus` value), `rate_amount?`, `rate_currency?`, `finalized_at?`, `meta?` (array cast). Optional `order()` / `shippingConnection()` (or `connection()`) relations enrich the columns.
+
+## Panel registration
 
 ```php
 use Adaa\ShippingFilament\ShippingFilamentPlugin;
@@ -31,67 +51,18 @@ use Adaa\ShippingFilament\ShippingFilamentPlugin;
 $panel->plugin(ShippingFilamentPlugin::make());
 ```
 
-تبقى الموارد مخفية حتى تُضبط الموديلات — لا أسرار خام تُعرض أبدًا (حقول كلمات مرور + إظهار عند الإنشاء فقط).
+## Security
 
-## الموارد | Resources
+- Credentials are stored encrypted by the **host** model and are never rendered in tables or infolists.
+- Every list is merchant-scoped when the relationship exists.
+- `meta` output passes through `MetaRedactor` before display.
 
-- `ShippingConnectionResource` (+ List/Create/View/Edit): إدارة اتصالات الشحن.
-  الحقول: التاجر (`merchant()` relationship إن وُجدت وإلا `merchant_id` رقمي)،
-  `carrier_code` (قائمة ثابتة تطابق `config/carriers.php` في `adaa/shipping`)،
-  `mode` (platform/merchant)، `environment` (sandbox/production)،
-  `credentials` (KeyValue **عند الإنشاء فقط** — لا تظهر في الجدول أو العرض أو التعديل)،
-  `status`، `origin_country`، `external_account_id`.
-  الجدول: id، التاجر، الناقل، الوضع، البيئة، الحالة، `last_validated_at` — **لا أعمدة أسرار أبدًا**.
-- `ShippingShipmentResource` (+ List/View فقط — للقراءة): الشحنات تُنشأ من خط الشحن نفسه.
-  الجدول: الطلب، الاتصال/الناقل، `tracking_number` (قابل للنسخ)، الحالة (شارة ملونة)،
-  السعر، `finalized_at`؛ فلاتر الحالة + الناقل؛ صفحة العرض تُظهر `meta` بعد التنقية
-  (أي مفتاح يحتوي pass/secret/token/key يُستبدل بـ `••••••`).
-
-## عقد موديلات المضيف | Host-model contract
-
-الحزمة الأساسية لا تشحن موديلات Eloquent — عرّف موديلاتك الخاصة ثم اربطها:
-
-```php
-// config/shipping-filament.php
-'connection_model' => \App\Models\ShippingConnection::class,
-'shipment_model' => \App\Models\ShippingShipment::class,
-```
-
-### موديل الاتصال | Connection model
-
-الأعمدة المطلوبة: `merchant_id` (nullable)، `carrier_code`، `mode`، `environment`،
-`credentials`، `status` (`active`/`inactive`/`invalid`)، `origin_country` (nullable)،
-`external_account_id` (nullable)، `last_validated_at` (nullable)، `timestamps`.
-
-- يُستحسن ترميز الأسرار: `'credentials' => 'encrypted:array'` في `casts()`.
-- إن عرّف الموديل `merchant(): BelongsTo` استُخدمت قائمة علاقة، وإلا حقل `merchant_id` رقمي.
-- فلترة التاجر: عندما توجد علاقة `merchant()` يُفلتر الاستعلام على `merchant_id`
-  للمعرف الحالي — حدّده عبر `ShippingConnectionResource::merchantIdUsing(fn () => ...)`،
-  أو تلقائيًا من مستأجر Filament الحالي عندما `tenancy_aware=true` (الافتراضي).
-  بدون علاقة `merchant()` أو بدون معرف حالي: لا فلترة.
-
-### موديل الشحنة | Shipment model
-
-الأعمدة المطلوبة: `order_id` (nullable)، `shipping_connection_id` (nullable)،
-`carrier_code`، `tracking_number` (nullable)، `status` (إحدى قيم `ShipmentStatus`)،
-`rate_amount` (nullable)، `rate_currency` (nullable)، `finalized_at` (nullable)،
-`meta` (nullable, مصبوب `array`)، `timestamps`.
-
-- علاقات اختيارية لعرض أجمل: `order(): BelongsTo`، `shippingConnection(): BelongsTo`
-  (أو `connection(): BelongsTo`).
-- `meta` تُعرض دائمًا بعد تنقية `MetaRedactor` — لا تعرضها خامًا في أي مكان.
-
-## الأمان | Security
-
-- بيانات الاعتماد تُخزن مشفرة في `shipping_connections` ولا تُعرض في الجداول أو الـ Infolists.
-- كل استعلام مفلتر بملكية التاجر (`merchant_id`) — تاجر لا يرى اتصالات غيره.
-
-## الاختبارات | Testing
+## Testing
 
 ```bash
 composer test
 ```
 
-## الترخيص | License
+## License
 
 MIT
