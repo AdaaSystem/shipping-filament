@@ -1,0 +1,61 @@
+{
+    "$schema": "https://getcomposer.org/schema.json",
+    "name": "adaa/shipping-filament",
+    "description": "Optional Filament admin UI for adaa/shipping: manage platform and merchant shipping connections and shipments.",
+    "type": "library",
+    "license": "MIT",
+    "keywords": ["laravel", "filament", "shipping", "carriers", "ecommerce"],
+    "authors": [
+        { "name": "AdaaSystem" }
+    ],
+    "require": {
+        "php": "^8.3",
+        "adaa/shipping": "dev-main",
+        "filament/filament": "^5.0",
+        "illuminate/contracts": "^10.0|^11.0|^12.0|^13.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^8.0|^9.0|^10.0",
+        "pestphp/pest": "^2.0|^3.0|^4.0",
+        "pestphp/pest-plugin-laravel": "^2.0|^3.0|^4.0",
+        "laravel/pint": "^1.0",
+        "phpstan/phpstan": "^1.0|^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Adaa\\ShippingFilament\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Adaa\\ShippingFilament\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Adaa\\ShippingFilament\\ShippingFilamentServiceProvider"
+            ]
+        }
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../shipping",
+            "options": { "symlink": true }
+        }
+    ],
+    "scripts": {
+        "test": "pest",
+        "format": "pint",
+        "analyse": "phpstan analyse --memory-limit=512M"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
