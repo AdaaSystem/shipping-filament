@@ -22,6 +22,15 @@ composer require adaa/shipping adaa/shipping-filament
 php artisan vendor:publish --tag=shipping-filament-config
 ```
 
+### Local development (sibling checkout)
+
+CI and Packagist installs resolve `adaa/shipping` remotely. To develop against a local sibling checkout instead, add a **local-only** path repository (never committed):
+
+```bash
+composer config repositories.local '{"type": "path", "url": "../shipping", "options": {"symlink": true}}'
+composer update adaa/shipping
+```
+
 ## Configuration
 
 Point the package at **your** Eloquent models (the core is framework-agnostic and ships none):

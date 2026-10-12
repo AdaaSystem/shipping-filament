@@ -22,6 +22,15 @@ composer require adaa/shipping adaa/shipping-filament
 php artisan vendor:publish --tag=shipping-filament-config
 ```
 
+### التطوير المحلي (نسخة شقيقة)
+
+تثبيتات CI وPackagist تحل `adaa/shipping` عن بُعد. للتطوير مقابل نسخة محلية شقيقة، أضف مستودع path **محليًا فقط** (لا يُلتزم به أبدًا):
+
+```bash
+composer config repositories.local '{"type": "path", "url": "../shipping", "options": {"symlink": true}}'
+composer update adaa/shipping
+```
+
 ## الإعداد
 
 وجّه الحزمة إلى موديلات Eloquent **الخاصة بك** (النواة مستقلة عن إطار العمل ولا تشحن أي موديل):
