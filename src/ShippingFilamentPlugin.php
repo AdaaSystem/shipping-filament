@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Adaa\ShippingFilament;
 
+use Adaa\ShippingFilament\Pages\ShippingDashboard;
 use Adaa\ShippingFilament\Resources\ShippingConnectionResource;
 use Adaa\ShippingFilament\Resources\ShippingShipmentResource;
 use Filament\Contracts\Plugin;
@@ -30,6 +31,10 @@ class ShippingFilamentPlugin implements Plugin
         if ($resources !== []) {
             $panel->resources($resources);
         }
+
+        $panel->pages([
+            ShippingDashboard::class,
+        ]);
     }
 
     public function boot(Panel $panel): void

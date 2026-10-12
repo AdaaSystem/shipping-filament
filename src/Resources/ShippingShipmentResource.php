@@ -21,6 +21,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Model;
+use Throwable;
 
 /**
  * Read-only shipment administration. Shipments are created by the shipping
@@ -201,5 +202,20 @@ class ShippingShipmentResource extends BaseShippingResource
         }
 
         return (string) ($record->tracking_number ?? $record->getKey());
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        if (! static::isConfigured()) {
+            return null;
+        }
+
+        try {
+            $count = \Adaa\ShippingFilament\Support\ShippingDashboardData::inTransitCount(static::getModel());
+
+            return $count > 0 ? (string) $count : null;
+        } catch (Throwable) {
+            return null;
+        }
     }
 }

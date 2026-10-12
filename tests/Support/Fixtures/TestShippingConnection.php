@@ -6,6 +6,7 @@ namespace Adaa\ShippingFilament\Tests\Support\Fixtures;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class TestShippingConnection extends Model
 {
@@ -30,5 +31,13 @@ class TestShippingConnection extends Model
     public function merchant(): BelongsTo
     {
         return $this->belongsTo(TestMerchant::class, 'merchant_id');
+    }
+
+    /**
+     * @return HasMany<TestShippingShipment, $this>
+     */
+    public function shipments(): HasMany
+    {
+        return $this->hasMany(TestShippingShipment::class, 'shipping_connection_id');
     }
 }

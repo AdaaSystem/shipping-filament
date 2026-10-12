@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [v0.2.0]
+
+- Shipping dashboard page (stats, status/carrier charts, latest shipments).
+- Shipments relation manager on connections; navigation badges; credential-free capability inspector action.
+- `ShippingDashboardData` aggregation seam (unit-tested, merchant-aware).
+
 - Initial scaffold: Filament plugin contract, publishable config with host-model mapping, Pest skeleton.
 - Shipping resources against host-app models: `ShippingConnectionResource` (List/Create/View/Edit; credentials as create-only KeyValue, never in table/infolist/edit) and read-only `ShippingShipmentResource` (List/View; copyable tracking, status badge, status+carrier filters, redacted meta infolist).
 - Merchant scoping on connection queries when the host model defines `merchant()` (`merchantIdUsing()` override or Filament tenant fallback); defensive relationship-or-numeric merchant field.

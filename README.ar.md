@@ -67,7 +67,11 @@ composer test
 
 نفس تدفق الحزمة الأساسية: المشرف يدفع tag (`git tag v0.1.0 && git push --tags`) ← GitHub Action ينشئ Release ← Packagist يتزامن تلقائيًا (إعداد لمرة واحدة: قدّم عبر <https://packagist.org/packages/submit> بالرابط `https://github.com/AdaaSystem/shipping-filament`, ثم خوّل تطبيق Packagist على GitHub في <https://packagist.org/profile>). المشاريع تحدث عبر `composer update adaa/shipping-filament`. الـ CI (PHP 8.3–8.5) وطلبات Dependabot الأسبوعية مربوطة مسبقًا.
 
-**تزامن النسخ:** تتبع هذه الحزمة نسخة `adaa/shipping` الأساسية — وسِم النسخ المتطابقة معًا (مثل الأساسية `v0.1.0` مع filament برقم `v0.1.0`).
+## لوحة التحكم
+
+تسجيل الإضافة يضيف أيضًا صفحة **لوحة الشحن** (نظرة إحصائية، ورسما الشحنات حسب الحالة والشركة، وأحدث الشحنات) مع علاقة الشحنات في كل اتصال وشارات للشحنات الجارية والاتصالات النشطة. كل شيء يخفي نفسه حتى تُضبط موديلات المضيف.
+
+**تزامن النسخ:** تتبع هذه الحزمة خط `adaa/shipping` الأساسي — تتطلب `adaa/shipping ^0.1` وتُوسم مستقلة (`v0.2.0` تغطي اللوحة).
 
 ## الترخيص
 

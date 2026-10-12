@@ -67,7 +67,11 @@ composer test
 
 Same flow as the core package: maintainer pushes a tag (`git tag v0.1.0 && git push --tags`) → GitHub Action creates the Release → Packagist auto-syncs (one-time setup: submit at <https://packagist.org/packages/submit> with `https://github.com/AdaaSystem/shipping-filament`, then authorize the Packagist GitHub App at <https://packagist.org/profile>). Consumers update with `composer update adaa/shipping-filament`. CI (PHP 8.3–8.5) and weekly Dependabot PRs are already wired.
 
-**Version pairing:** this package follows the core `adaa/shipping` version — tag matching versions together (e.g. core `v0.1.0` with filament `v0.1.0`).
+## Dashboard
+
+Registering the plugin also adds a **Shipping dashboard** page (stats overview, shipments-by-status and by-carrier charts, latest shipments) plus a shipments relation on each connection and an in-transit/active-connections navigation badge. Everything hides itself until both host models are configured.
+
+**Version pairing:** this package follows the core `adaa/shipping` line — it requires `adaa/shipping ^0.1` and is tagged independently (`v0.2.0` covers the dashboard).
 
 ## License
 

@@ -6,6 +6,7 @@ namespace Adaa\ShippingFilament\Resources;
 
 use Adaa\Shipping\Enums\ConnectionMode;
 use Adaa\Shipping\Enums\Environment;
+use Adaa\ShippingFilament\Resources\ShippingConnectionResource\RelationManagers\ShipmentsRelationManager;
 use Adaa\ShippingFilament\Resources\ShippingConnectionResource\Pages\CreateShippingConnection;
 use Adaa\ShippingFilament\Resources\ShippingConnectionResource\Pages\EditShippingConnection;
 use Adaa\ShippingFilament\Resources\ShippingConnectionResource\Pages\ListShippingConnections;
@@ -28,6 +29,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Model;
+use Throwable;
 
 class ShippingConnectionResource extends BaseShippingResource
 {
@@ -223,5 +225,30 @@ class ShippingConnectionResource extends BaseShippingResource
         }
 
         return (string) ($record->carrier_code ?? $record->getKey());
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        if (! static::isConfigured()) {
+            return null;
+        }
+
+        try {
+            $count = \Adaa\ShippingFilament\Support\ShippingDashboardData::activeConnectionsCount(static::getModel());
+
+            return $count > 0 ? (string) $count : null;
+        } catch (Throwable) {
+            return null;
+        }
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public static function getRelations(): array
+    {
+        return [
+            ShipmentsRelationManager::class,
+        ];
     }
 }
