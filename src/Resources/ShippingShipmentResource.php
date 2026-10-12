@@ -9,6 +9,7 @@ use Adaa\ShippingFilament\Resources\ShippingShipmentResource\Pages\ListShippingS
 use Adaa\ShippingFilament\Resources\ShippingShipmentResource\Pages\ViewShippingShipment;
 use Adaa\ShippingFilament\Support\CarrierOptions;
 use Adaa\ShippingFilament\Support\MetaRedactor;
+use Adaa\ShippingFilament\Support\ShippingDashboardData;
 use BackedEnum;
 use Filament\Actions\ViewAction;
 use Filament\Infolists\Components\KeyValueEntry;
@@ -211,7 +212,7 @@ class ShippingShipmentResource extends BaseShippingResource
         }
 
         try {
-            $count = \Adaa\ShippingFilament\Support\ShippingDashboardData::inTransitCount(static::getModel());
+            $count = ShippingDashboardData::inTransitCount(static::getModel());
 
             return $count > 0 ? (string) $count : null;
         } catch (Throwable) {

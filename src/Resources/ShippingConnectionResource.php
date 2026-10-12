@@ -6,12 +6,13 @@ namespace Adaa\ShippingFilament\Resources;
 
 use Adaa\Shipping\Enums\ConnectionMode;
 use Adaa\Shipping\Enums\Environment;
-use Adaa\ShippingFilament\Resources\ShippingConnectionResource\RelationManagers\ShipmentsRelationManager;
 use Adaa\ShippingFilament\Resources\ShippingConnectionResource\Pages\CreateShippingConnection;
 use Adaa\ShippingFilament\Resources\ShippingConnectionResource\Pages\EditShippingConnection;
 use Adaa\ShippingFilament\Resources\ShippingConnectionResource\Pages\ListShippingConnections;
 use Adaa\ShippingFilament\Resources\ShippingConnectionResource\Pages\ViewShippingConnection;
+use Adaa\ShippingFilament\Resources\ShippingConnectionResource\RelationManagers\ShipmentsRelationManager;
 use Adaa\ShippingFilament\Support\CarrierOptions;
+use Adaa\ShippingFilament\Support\ShippingDashboardData;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -234,7 +235,7 @@ class ShippingConnectionResource extends BaseShippingResource
         }
 
         try {
-            $count = \Adaa\ShippingFilament\Support\ShippingDashboardData::activeConnectionsCount(static::getModel());
+            $count = ShippingDashboardData::activeConnectionsCount(static::getModel());
 
             return $count > 0 ? (string) $count : null;
         } catch (Throwable) {

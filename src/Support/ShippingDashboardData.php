@@ -22,17 +22,17 @@ final class ShippingDashboardData
      */
     public static function stats(string $shipmentModel, string $connectionModel): array
     {
-        $total = static::scoped($shipmentModel)->count();
+        $total = self::scoped($shipmentModel)->count();
 
-        $delivered = static::scoped($shipmentModel)
+        $delivered = self::scoped($shipmentModel)
             ->where('status', ShipmentStatus::Delivered->value)
             ->count();
 
-        $inTransit = static::scoped($shipmentModel)
+        $inTransit = self::scoped($shipmentModel)
             ->where('status', ShipmentStatus::InTransit->value)
             ->count();
 
-        $activeConnections = static::scoped($connectionModel)
+        $activeConnections = self::scoped($connectionModel)
             ->where('status', 'active')
             ->count();
 
@@ -52,7 +52,7 @@ final class ShippingDashboardData
      */
     public static function shipmentsByStatus(string $shipmentModel): array
     {
-        $rows = static::scoped($shipmentModel)
+        $rows = self::scoped($shipmentModel)
             ->selectRaw('status, COUNT(*) as aggregate')
             ->groupBy('status')
             ->pluck('aggregate', 'status')
@@ -75,7 +75,7 @@ final class ShippingDashboardData
     public static function shipmentsByCarrier(string $shipmentModel): array
     {
         /** @var array<string, int> $rows */
-        $rows = static::scoped($shipmentModel)
+        $rows = self::scoped($shipmentModel)
             ->selectRaw('carrier_code, COUNT(*) as aggregate')
             ->groupBy('carrier_code')
             ->pluck('aggregate', 'carrier_code')
@@ -89,7 +89,7 @@ final class ShippingDashboardData
      */
     public static function recentShipments(string $shipmentModel, int $limit = 5): Collection
     {
-        return static::scoped($shipmentModel)
+        return self::scoped($shipmentModel)
             ->latest('id')
             ->limit(max(1, $limit))
             ->get();
@@ -97,14 +97,14 @@ final class ShippingDashboardData
 
     public static function activeConnectionsCount(string $connectionModel): int
     {
-        return static::scoped($connectionModel)
+        return self::scoped($connectionModel)
             ->where('status', 'active')
             ->count();
     }
 
     public static function inTransitCount(string $shipmentModel): int
     {
-        return static::scoped($shipmentModel)
+        return self::scoped($shipmentModel)
             ->where('status', ShipmentStatus::InTransit->value)
             ->count();
     }

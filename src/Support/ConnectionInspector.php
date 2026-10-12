@@ -22,7 +22,7 @@ final class ConnectionInspector
         $registry = config('shipping.carriers', []);
 
         if ($registry === []) {
-            $registry = static::coreRegistryDefaults();
+            $registry = self::coreRegistryDefaults();
         }
 
         $entry = $registry[$carrierCode] ?? null;
@@ -70,7 +70,7 @@ final class ConnectionInspector
 
     public static function isKnownCarrier(string $carrierCode): bool
     {
-        if (static::capabilitiesFor($carrierCode) !== []) {
+        if (self::capabilitiesFor($carrierCode) !== []) {
             return true;
         }
 
@@ -84,7 +84,7 @@ final class ConnectionInspector
      */
     public static function describe(string $carrierCode): array
     {
-        $capabilities = static::capabilitiesFor($carrierCode);
+        $capabilities = self::capabilitiesFor($carrierCode);
 
         if ($capabilities === []) {
             return ["No capability metadata for [{$carrierCode}] — check the carrier code."];

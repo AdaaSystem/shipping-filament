@@ -38,11 +38,11 @@ final class CarrierOptions
      */
     public static function codes(): array
     {
-        return array_keys(static::options());
+        return array_keys(self::options());
     }
 
     public static function label(string $code): string
     {
-        return static::options()[$code] ?? $code;
+        return self::options()[$code] ?? $code;
     }
 }
