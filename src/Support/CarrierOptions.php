@@ -23,7 +23,11 @@ final class CarrierOptions
             'bosta' => 'Bosta',
             'mylerz' => 'Mylerz',
             'smsa' => 'SMSA Express',
+            'jtexpress' => 'J&T Express',
             'aramex' => 'Aramex',
+            'fedex' => 'FedEx',
+            'dhl' => 'DHL Express',
+            'ups' => 'UPS',
             'egyptpost' => 'Egypt Post',
             'fake' => 'Fake (tests)',
         ];
