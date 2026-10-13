@@ -6,6 +6,7 @@ namespace Adaa\ShippingFilament\Resources\ShippingConnectionResource\Pages;
 
 use Adaa\ShippingFilament\Resources\ShippingConnectionResource;
 use Adaa\ShippingFilament\Support\ConnectionInspector;
+use Adaa\ShippingFilament\Support\ValidateConnection;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
@@ -21,6 +22,7 @@ class ViewShippingConnection extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
+            ValidateConnection::make(),
             Action::make('inspectCapabilities')
                 ->label('Capabilities')
                 ->icon('heroicon-o-information-circle')

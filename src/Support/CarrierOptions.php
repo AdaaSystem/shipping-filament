@@ -28,6 +28,12 @@ final class CarrierOptions
             'fedex' => 'FedEx',
             'dhl' => 'DHL Express',
             'ups' => 'UPS',
+            'mng' => 'MNG Kargo',
+            'hepsijet' => 'HepsiJet',
+            'yurtici' => 'Yurtiçi Kargo',
+            'aras' => 'Aras Kargo',
+            'surat' => 'Sürat Kargo',
+            'ptt' => 'PTT Kargo',
             'egyptpost' => 'Egypt Post',
             'fake' => 'Fake (tests)',
         ];

@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- `validateConnection` header action on connection View + Edit pages: offline required-keys presence check for every carrier plus a live Bosta `cities()` probe; persists `active` + `last_validated_at` on success and `invalid` on failure, never logging or displaying secret values.
+
 ## [v0.2.1]
 
 - Merchant-aware scoping hook (`scopeUsing`): platform connections stay visible to merchants by default; hosts can override per model.
