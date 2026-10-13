@@ -2,41 +2,19 @@
 
 > **English** | [العربية](README.ar.md)
 
-Optional Filament admin UI for [`adaa/shipping`](https://github.com/AdaaSystem/shipping). The core library is complete without it — install this package only if you run a Filament panel.
-
-## What it provides
-
-- **Shipping connections management** — platform-owned and merchant-owned carrier accounts, with credentials editable **only on create** and never displayed in tables, infolists, or edit forms.
-- **Shipments browser** — read-only tracking views with copyable tracking numbers, status badges, carrier filters, and credential-safe metadata display (`MetaRedactor` masks any `*pass*`, `*secret*`, `*token*`, `*key*` values, including nested ones).
-- **Merchant scoping** — list queries are filtered by the current merchant whenever the host model exposes a `merchant()` relationship, so a merchant never sees another merchant's connections.
-- **Zero-config hiding** — resources stay unregistered until both host models are configured.
-
-## Requirements
-
-- PHP `^8.3`, `filament/filament ^5.0`, `adaa/shipping` (any corresponding version).
-
-## Installation
+Admin UI for [`adaa/shipping`](https://github.com/AdaaSystem/shipping): manage carrier connections, browse shipments, and watch a shipping dashboard — inside your Filament panel. The core library works without it.
 
 ```bash
 composer require adaa/shipping adaa/shipping-filament
 php artisan vendor:publish --tag=shipping-filament-config
 ```
 
-### Local development (sibling checkout)
+## 5-minute setup
 
-CI and Packagist installs resolve `adaa/shipping` remotely. To develop against a local sibling checkout instead, add a **local-only** path repository (never committed):
-
-```bash
-composer config repositories.local '{"type": "path", "url": "../shipping", "options": {"symlink": true}}'
-composer update adaa/shipping
-```
-
-## Configuration
-
-Point the package at **your** Eloquent models (the core is framework-agnostic and ships none):
+**1. Point the package at your models.** The core ships no Eloquent models, so tell it yours (or set the `.env` vars):
 
 ```php
-// config/shipping-filament.php — or via .env
+// config/shipping-filament.php
 'connection_model' => \App\Models\ShippingConnection::class,
 'shipment_model' => \App\Models\ShippingShipment::class,
 ```
@@ -46,13 +24,39 @@ SHIPPING_CONNECTION_MODEL=App\Models\ShippingConnection
 SHIPPING_SHIPMENT_MODEL=App\Models\ShippingShipment
 ```
 
-### Host-model contract
+Your models need these attributes (anything extra is ignored):
 
-**Connection model** — expected attributes: `merchant_id?`, `carrier_code`, `mode` (`platform|merchant`), `environment` (`sandbox|production`), `credentials` (recommended cast: `encrypted:array`), `status` (`active|inactive|invalid`), `origin_country?`, `external_account_id?`, `last_validated_at?`. Optional `merchant(): BelongsTo` enables the relationship picker **and** automatic scoping; without it, a plain numeric id field is used and no scoping is applied. Merchant resolution order: explicit `::merchantIdUsing()` resolver → Filament tenant (when `tenancy_aware`) → none.
+- Connection: `merchant_id?`, `carrier_code`, `mode` (`platform`/`merchant`), `environment` (`sandbox`/`production`), `credentials` (cast `encrypted:array`, add to `$hidden`), `status`, `origin_country?`, `external_account_id?`, `last_validated_at?`
+- Shipment: `order_id?`, `shipping_connection_id?`, `carrier_code`, `tracking_number?`, `status`, `rate_amount?`, `rate_currency?`, `finalized_at?`, `meta?` (array cast)
 
-**Shipment model** — expected attributes: `order_id?`, `shipping_connection_id?`, `carrier_code`, `tracking_number?`, `status` (an `Adaa\Shipping\Enums\ShipmentStatus` value), `rate_amount?`, `rate_currency?`, `finalized_at?`, `meta?` (array cast). Optional `order()` / `shippingConnection()` (or `connection()`) relations enrich the columns.
+Minimum viable models (copy, rename the namespace, done):
 
-## Panel registration
+```php
+class ShippingConnection extends Model
+{
+    protected $fillable = ['merchant_id', 'carrier_code', 'mode', 'environment',
+        'credentials', 'status', 'origin_country', 'external_account_id'];
+    protected $hidden = ['credentials'];
+    protected function casts(): array
+    {
+        return ['credentials' => 'encrypted:array', 'last_validated_at' => 'datetime'];
+    }
+    public function merchant(): BelongsTo { return $this->belongsTo(User::class); }
+    public function shipments(): HasMany { return $this->hasMany(ShippingShipment::class); }
+}
+
+class ShippingShipment extends Model
+{
+    protected $fillable = ['order_id', 'shipping_connection_id', 'carrier_code',
+        'tracking_number', 'status', 'rate_amount', 'rate_currency', 'meta'];
+    protected function casts(): array
+    {
+        return ['meta' => 'array', 'finalized_at' => 'datetime'];
+    }
+}
+```
+
+**2. Register the plugin.** Resources, dashboard page, and widgets appear automatically — and stay hidden until both models are configured:
 
 ```php
 use Adaa\ShippingFilament\ShippingFilamentPlugin;
@@ -60,28 +64,73 @@ use Adaa\ShippingFilament\ShippingFilamentPlugin;
 $panel->plugin(ShippingFilamentPlugin::make());
 ```
 
-## Security
+**3. Scope merchants (multi-vendor panels).** Without this, every merchant sees every row:
 
-- Credentials are stored encrypted by the **host** model and are never rendered in tables or infolists.
-- Every list is merchant-scoped when the relationship exists.
-- `meta` output passes through `MetaRedactor` before display.
+```php
+use Adaa\ShippingFilament\Resources\BaseShippingResource;
+use Adaa\ShippingFilament\Resources\ShippingConnectionResource;
+use Adaa\ShippingFilament\Resources\ShippingShipmentResource;
 
-## Testing
+// Who is "the current merchant"? Static id, closure, or Filament tenant (when tenancy_aware).
+ShippingConnectionResource::merchantIdUsing(fn () => auth('merchant')->id());
 
-```bash
-composer test
+// Default rule already covers the common case: rows with your merchant_id
+// plus platform rows (merchant_id NULL) stay visible; anything else hides.
+// Override per model only when your ownership differs:
+BaseShippingResource::scopeUsing(ShippingShipment::class,
+    fn ($query) => $query->whereHas('order.store',
+        fn ($stores) => $stores->where('merchant_id', auth('merchant')->id())));
 ```
 
-## Releases & automatic updates
+## What you get
 
-Same flow as the core package: maintainer pushes a tag (`git tag v0.1.0 && git push --tags`) → GitHub Action creates the Release → Packagist auto-syncs (one-time setup: submit at <https://packagist.org/packages/submit> with `https://github.com/AdaaSystem/shipping-filament`, then authorize the Packagist GitHub App at <https://packagist.org/profile>). Consumers update with `composer update adaa/shipping-filament`. CI (PHP 8.3–8.5) and weekly Dependabot PRs are already wired.
+**Connections** (`Shipping connections` nav) — create platform or merchant accounts. The form shows exactly the credential fields each carrier needs (Bosta: `api_key`; Aramex: username/password/account…), as password inputs, only on create — never again. Extras (`base_url`, `timeout`) go in the additional-credentials box and merge on save.
 
-## Dashboard
+**Validate button** (View/Edit page) — checks the required keys, then proves a Bosta key with a live `cities()` lookup (other carriers: presence check, stated honestly in the notice). Success writes `active` + timestamp; failure writes `invalid`. Secrets never appear in messages.
 
-Registering the plugin also adds a **Shipping dashboard** page (stats overview, shipments-by-status and by-carrier charts, latest shipments) plus a shipments relation on each connection and an in-transit/active-connections navigation badge. Everything hides itself until both host models are configured.
+**Capabilities inspector** — per-connection modal listing what the carrier supports, from registry metadata, no secrets touched.
 
-**Version pairing:** this package follows the core `adaa/shipping` line — it requires `adaa/shipping ^0.1` and is tagged independently (`v0.2.0` covers the dashboard).
+**Shipments** (read-only) — tracking numbers (click-to-copy), status badges, carrier/status filters, credential-scrubbed metadata, rate display.
 
-## License
+**Dashboard page** — totals, delivery rate, in-transit/failed counts, active connections, per-status and per-carrier charts, latest shipments, plus a shipments relation on each connection and nav badges. Everything above respects merchant scoping.
 
-MIT
+## Calling it from your code
+
+```php
+use Adaa\ShippingFilament\Resources\ShippingConnectionResource;
+use Adaa\ShippingFilament\Support\CarrierOptions;
+use Adaa\ShippingFilament\Support\ConnectionValidator;
+use Adaa\ShippingFilament\Support\MetaRedactor;
+use Adaa\ShippingFilament\Support\ShippingDashboardData;
+
+// Carrier select options + labels for your own forms:
+CarrierOptions::options();          // ['bosta' => 'Bosta', ...]
+CarrierOptions::label('bosta');     // 'Bosta'
+
+// Validate credentials without Filament (e.g. in an API controller):
+$missing = ConnectionValidator::missingFor('bosta', $request->input('credentials', []));
+if ($missing !== []) {
+    abort(422, 'Missing credentials: '.implode(', ', $missing));
+}
+
+// Scrub any array before display/logging (masks *pass*/*secret*/*token*/*key*, nested too):
+$safe = MetaRedactor::redact($shipment->meta ?? []);
+
+// Dashboard numbers for your own widgets (merchant-aware):
+$stats = ShippingDashboardData::stats(ShippingShipment::class, ShippingConnection::class);
+// ['shipments', 'delivered', 'delivered_rate', 'in_transit', 'failed', 'active_connections']
+```
+
+## Security model
+
+- Credentials are encrypted by **your** model cast and never rendered (tables, infolists, edit forms, notifications, logs).
+- Validation messages name missing **keys**, never values.
+- Merchant isolation is server-side (`merchantIdUsing` + `scopeUsing`); the client never supplies the merchant id.
+
+## Requirements
+
+PHP `^8.3`, `filament/filament ^5.0`, `adaa/shipping dev-main` (stable `^0.1` constraint follows once Packagist syncs the core tags).
+
+## Contributing
+
+MIT. Test for every change (`composer test`), Pint before PRs.
