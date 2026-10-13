@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [v0.2.1]
+
+- Merchant-aware scoping hook (`scopeUsing`): platform connections stay visible to merchants by default; hosts can override per model.
+- Failed stat on the dashboard (exception + failed rows).
+
 ## [v0.2.0]
 
 - Shipping dashboard page (stats, status/carrier charts, latest shipments).
