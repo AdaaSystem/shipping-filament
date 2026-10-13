@@ -40,6 +40,10 @@ class ShippingStatsWidget extends StatsOverviewWidget
                 ->description('Currently moving')
                 ->icon(Heroicon::Truck)
                 ->color('info'),
+            Stat::make('Failed', number_format($stats['failed']))
+                ->description('Needs attention')
+                ->icon(Heroicon::ExclamationTriangle)
+                ->color('danger'),
             Stat::make('Active connections', number_format($stats['active_connections']))
                 ->description('Platform + merchant accounts')
                 ->icon(Heroicon::Link)

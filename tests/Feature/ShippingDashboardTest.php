@@ -80,6 +80,7 @@ test('dashboard stats aggregate shipments and connections', function () {
         ->and($stats['delivered'])->toBe(2)
         ->and($stats['delivered_rate'])->toBe(50.0)
         ->and($stats['in_transit'])->toBe(1)
+        ->and($stats['failed'])->toBe(0)
         ->and($stats['active_connections'])->toBe(1);
 });
 
@@ -91,6 +92,7 @@ test('dashboard stats are zero when nothing exists', function () {
         'delivered' => 0,
         'delivered_rate' => 0.0,
         'in_transit' => 0,
+        'failed' => 0,
         'active_connections' => 0,
     ]);
 });
@@ -181,4 +183,42 @@ test('navigation badges count active connections and in-transit shipments', func
 
     expect(ShippingConnectionResource::getNavigationBadge())->toBeNull()
         ->and(ShippingShipmentResource::getNavigationBadge())->toBeNull();
+});
+
+test('platform connections stay visible to merchants by default', function () {
+    TestShippingConnection::create(['merchant_id' => null, 'carrier_code' => 'bosta', 'status' => 'active']);
+
+    BaseShippingResource::merchantIdUsing(99);
+
+    try {
+        expect(TestShippingConnection::query()->count())->toBe(1)
+            ->and(BaseShippingResource::scopeQueryFor(TestShippingConnection::class)->count())->toBe(1);
+    } finally {
+        BaseShippingResource::merchantIdUsing(null);
+    }
+});
+
+test('host apps can override scoping per model', function () {
+    TestShippingConnection::create(['merchant_id' => 1, 'carrier_code' => 'bosta', 'status' => 'active']);
+    TestShippingConnection::create(['merchant_id' => 2, 'carrier_code' => 'aramex', 'status' => 'active']);
+
+    BaseShippingResource::scopeUsing(TestShippingConnection::class, fn ($query) => $query->where('carrier_code', 'bosta'));
+
+    try {
+        expect(BaseShippingResource::scopeQueryFor(TestShippingConnection::class)->pluck('carrier_code')->all())->toBe(['bosta']);
+    } finally {
+        BaseShippingResource::scopeUsing(TestShippingConnection::class, null);
+    }
+
+    expect(BaseShippingResource::scopeQueryFor(TestShippingConnection::class)->count())->toBe(2);
+});
+
+test('failed stat counts exception and failed rows', function () {
+    TestShippingShipment::create(['carrier_code' => 'bosta', 'tracking_number' => 'E1', 'status' => ShipmentStatus::Exception->value]);
+    TestShippingShipment::create(['carrier_code' => 'bosta', 'tracking_number' => 'F1', 'status' => 'failed']);
+    TestShippingShipment::create(['carrier_code' => 'bosta', 'tracking_number' => 'D1', 'status' => ShipmentStatus::Delivered->value]);
+
+    $stats = ShippingDashboardData::stats(TestShippingShipment::class, TestShippingConnection::class);
+
+    expect($stats['failed'])->toBe(2)->and($stats['shipments'])->toBe(3);
 });

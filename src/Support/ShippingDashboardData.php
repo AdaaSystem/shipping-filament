@@ -8,7 +8,6 @@ use Adaa\Shipping\Enums\ShipmentStatus;
 use Adaa\ShippingFilament\Resources\BaseShippingResource;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Schema;
 
 /**
  * Query + aggregation seam behind the dashboard widgets. Kept as plain
@@ -18,7 +17,7 @@ use Illuminate\Support\Facades\Schema;
 final class ShippingDashboardData
 {
     /**
-     * @return array{shipments: int, delivered: int, delivered_rate: float, in_transit: int, active_connections: int}
+     * @return array{shipments: int, delivered: int, delivered_rate: float, in_transit: int, failed: int, active_connections: int}
      */
     public static function stats(string $shipmentModel, string $connectionModel): array
     {
@@ -32,6 +31,10 @@ final class ShippingDashboardData
             ->where('status', ShipmentStatus::InTransit->value)
             ->count();
 
+        $failed = self::scoped($shipmentModel)
+            ->whereIn('status', [ShipmentStatus::Exception->value, 'failed'])
+            ->count();
+
         $activeConnections = self::scoped($connectionModel)
             ->where('status', 'active')
             ->count();
@@ -41,6 +44,7 @@ final class ShippingDashboardData
             'delivered' => $delivered,
             'delivered_rate' => $total > 0 ? round($delivered / $total * 100, 1) : 0.0,
             'in_transit' => $inTransit,
+            'failed' => $failed,
             'active_connections' => $activeConnections,
         ];
     }
@@ -114,25 +118,6 @@ final class ShippingDashboardData
      */
     protected static function scoped(string $model): Builder
     {
-        /** @var Builder<*> $query */
-        $query = $model::query();
-
-        if (! method_exists($model, 'merchant')) {
-            return $query;
-        }
-
-        $merchantId = BaseShippingResource::resolveCurrentMerchantId();
-
-        if ($merchantId === null) {
-            return $query;
-        }
-
-        $instance = new $model;
-
-        if (! Schema::hasColumn($instance->getTable(), 'merchant_id')) {
-            return $query;
-        }
-
-        return $query->where($instance->getTable().'.merchant_id', $merchantId);
+        return BaseShippingResource::scopeQueryFor($model);
     }
 }

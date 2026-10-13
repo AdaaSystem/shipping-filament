@@ -21,6 +21,16 @@ abstract class BaseShippingResource extends Resource
     protected static array $merchantIdResolvers = [];
 
     /**
+     * Explicit per-model query scopes, keyed by model class. A host app
+     * registers these when the default merchant() convention cannot
+     * express its ownership (e.g. shipments owned through order->store,
+     * or connections where platform rows must stay visible).
+     *
+     * @var array<class-string, Closure(Builder): Builder|null>
+     */
+    protected static array $scopeCallbacks = [];
+
+    /**
      * Host-model contract: both Eloquent models must be configured before
      * any shipping resource registers navigation or becomes reachable.
      */
@@ -82,16 +92,40 @@ abstract class BaseShippingResource extends Resource
     }
 
     /**
-     * Scope the query to the current merchant when the host model exposes
-     * a merchant() relationship. Models without that relationship are
-     * returned unscoped.
+     * Register a merchant scope for one host model. The callback
+     * receives the query and must return it scoped (or untouched when
+     * no merchant resolves). Pass null to remove it (tests).
+     */
+    public static function scopeUsing(string $modelClass, ?Closure $callback): void
+    {
+        if ($callback === null) {
+            unset(static::$scopeCallbacks[$modelClass]);
+
+            return;
+        }
+
+        static::$scopeCallbacks[$modelClass] = $callback;
+    }
+
+    /**
+     * Scope any host-model query the merchant-aware way: explicit host
+     * callback first, then the merchant() convention (merchant rows
+     * plus platform rows with a null merchant_id).
      *
-     * @param  Builder<*>  $query
+     * @param  Builder<*>|null  $query
      * @return Builder<*>
      */
-    public static function applyMerchantScope(Builder $query): Builder
+    public static function scopeQueryFor(string $modelClass, ?Builder $query = null): Builder
     {
-        if (! method_exists(static::getModel(), 'merchant')) {
+        $query ??= $modelClass::query();
+
+        $callback = static::$scopeCallbacks[$modelClass] ?? null;
+
+        if ($callback instanceof Closure) {
+            return $callback($query);
+        }
+
+        if (! method_exists($modelClass, 'merchant')) {
             return $query;
         }
 
@@ -101,7 +135,26 @@ abstract class BaseShippingResource extends Resource
             return $query;
         }
 
-        return $query->where($query->getModel()->getTable().'.merchant_id', $merchantId);
+        $instance = new $modelClass;
+
+        return $query->where(function ($where) use ($instance, $merchantId): void {
+            $where->where($instance->getTable().'.merchant_id', $merchantId)
+                ->orWhereNull($instance->getTable().'.merchant_id');
+        });
+    }
+
+    /**
+     * Scope the query to the current merchant when the host model exposes
+     * a merchant() relationship (merchant rows plus null-merchant
+     * platform rows). Models without that relationship are returned
+     * unscoped unless a scopeUsing() callback was registered.
+     *
+     * @param  Builder<*>  $query
+     * @return Builder<*>
+     */
+    public static function applyMerchantScope(Builder $query): Builder
+    {
+        return static::scopeQueryFor(static::getModel(), $query);
     }
 
     public static function getEloquentQuery(): Builder
