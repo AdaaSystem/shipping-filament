@@ -113,9 +113,22 @@ test('connection form exposes credentials only on the create operation', functio
     $fields = collect(ShippingConnectionResource::formComponents())
         ->mapWithKeys(fn ($field) => [$field->getName() => $field]);
 
-    expect($fields->has('credentials'))->toBeTrue()
-        ->and($fields->get('credentials'))->toBeInstanceOf(KeyValue::class)
+    expect($fields->has('extra_credentials'))->toBeTrue()
+        ->and($fields->get('extra_credentials'))->toBeInstanceOf(KeyValue::class)
         ->and(ShippingConnectionResource::credentialsVisibleOnOperations())->toBe(['create']);
+});
+
+test('connection form renders one password field per required carrier key', function () {
+    $fields = collect(ShippingConnectionResource::credentialFields())
+        ->mapWithKeys(fn ($field) => [$field->getName() => $field]);
+
+    expect($fields->has('credentials.api_key'))->toBeTrue()
+        ->and($fields->get('credentials.api_key'))->toBeInstanceOf(TextInput::class)
+        ->and($fields->get('credentials.api_key')->isPassword())->toBeTrue();
+
+    $names = $fields->keys()->all();
+
+    expect(implode(',', $names))->not->toContain('extra_credentials');
 });
 
 test('merchant selector uses the relationship when available, else a numeric id', function () {

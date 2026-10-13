@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [v0.3.0]
+
+- Per-carrier dynamic credential fields on the connection form (driven by core `required_credentials`) + additional-credentials merge on save.
+- English/Arabic interface translations (`lang/en`, `lang/ar`, publishable).
+
 - `validateConnection` header action on connection View + Edit pages: offline required-keys presence check for every carrier plus a live Bosta `cities()` probe; persists `active` + `last_validated_at` on success and `invalid` on failure, never logging or displaying secret values.
 
 ## [v0.2.1]

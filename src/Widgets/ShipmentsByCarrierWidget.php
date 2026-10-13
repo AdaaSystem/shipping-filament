@@ -8,14 +8,18 @@ use Adaa\ShippingFilament\Resources\BaseShippingResource;
 use Adaa\ShippingFilament\Support\CarrierOptions;
 use Adaa\ShippingFilament\Support\ShippingDashboardData;
 use Filament\Widgets\BarChartWidget;
+use Illuminate\Contracts\Support\Htmlable;
 
 class ShipmentsByCarrierWidget extends BarChartWidget
 {
-    protected ?string $heading = 'Shipments by carrier';
-
     public static function canView(): bool
     {
         return BaseShippingResource::isConfigured();
+    }
+
+    public function getHeading(): string|Htmlable|null
+    {
+        return __('shipping-filament::dashboard.by_carrier');
     }
 
     /**

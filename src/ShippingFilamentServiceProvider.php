@@ -15,10 +15,16 @@ class ShippingFilamentServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        $this->loadTranslationsFrom(__DIR__.'/../lang', 'shipping-filament');
+
         if ($this->app->runningInConsole()) {
             $this->publishes([
                 __DIR__.'/../config/shipping-filament.php' => config_path('shipping-filament.php'),
             ], 'shipping-filament-config');
+
+            $this->publishes([
+                __DIR__.'/../lang' => $this->app->langPath('vendor/shipping-filament'),
+            ], 'shipping-filament-translations');
         }
     }
 }

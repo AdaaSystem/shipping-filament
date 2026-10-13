@@ -105,19 +105,19 @@ class ShippingShipmentResource extends BaseShippingResource
     {
         return [
             TextColumn::make('id')->label('ID')->sortable(),
-            TextColumn::make(static::orderColumnName())->label('Order')->sortable(),
-            TextColumn::make(static::connectionColumnName())->label('Connection')->sortable(),
-            TextColumn::make('carrier_code')->label('Carrier')->searchable()->sortable(),
-            TextColumn::make('tracking_number')->label('Tracking number')->copyable()->searchable(),
+            TextColumn::make(static::orderColumnName())->label(__('shipping-filament::shipment.order'))->sortable(),
+            TextColumn::make(static::connectionColumnName())->label(__('shipping-filament::shipment.connection'))->sortable(),
+            TextColumn::make('carrier_code')->label(__('shipping-filament::shipment.carrier'))->searchable()->sortable(),
+            TextColumn::make('tracking_number')->label(__('shipping-filament::shipment.tracking_number'))->copyable()->searchable(),
             TextColumn::make('status')
                 ->badge()
                 ->color(fn (string $state): string => static::statusColor($state))
                 ->formatStateUsing(fn (string $state): string => static::statusOptions()[$state] ?? $state),
             TextColumn::make('rate_amount')
-                ->label('Rate')
+                ->label(__('shipping-filament::shipment.rate'))
                 ->sortable()
                 ->formatStateUsing(fn ($state, Model $record): ?string => static::formatRate($state, $record)),
-            TextColumn::make('finalized_at')->label('Finalized')->dateTime()->sortable(),
+            TextColumn::make('finalized_at')->label(__('shipping-filament::shipment.finalized'))->dateTime()->sortable(),
         ];
     }
 
@@ -165,14 +165,14 @@ class ShippingShipmentResource extends BaseShippingResource
     public static function infolistComponents(): array
     {
         return [
-            TextEntry::make(static::orderColumnName())->label('Order'),
-            TextEntry::make(static::connectionColumnName())->label('Connection'),
-            TextEntry::make('carrier_code')->label('Carrier'),
-            TextEntry::make('tracking_number')->label('Tracking number')->copyable(),
-            TextEntry::make('status')->badge(),
-            TextEntry::make('rate_amount')->label('Rate')
+            TextEntry::make(static::orderColumnName())->label(__('shipping-filament::shipment.order')),
+            TextEntry::make(static::connectionColumnName())->label(__('shipping-filament::shipment.connection')),
+            TextEntry::make('carrier_code')->label(__('shipping-filament::shipment.carrier')),
+            TextEntry::make('tracking_number')->label(__('shipping-filament::shipment.tracking_number'))->copyable(),
+            TextEntry::make('status')->label(__('shipping-filament::shipment.status'))->badge(),
+            TextEntry::make('rate_amount')->label(__('shipping-filament::shipment.rate'))
                 ->state(fn (Model $record): ?string => static::formatRate($record->rate_amount ?? null, $record)),
-            TextEntry::make('finalized_at')->label('Finalized')->dateTime(),
+            TextEntry::make('finalized_at')->label(__('shipping-filament::shipment.finalized'))->dateTime(),
             KeyValueEntry::make('meta')
                 ->keyLabel('Key')
                 ->valueLabel('Value')
@@ -203,6 +203,11 @@ class ShippingShipmentResource extends BaseShippingResource
         }
 
         return (string) ($record->tracking_number ?? $record->getKey());
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('shipping-filament::shipment.plural');
     }
 
     public static function getNavigationBadge(): ?string

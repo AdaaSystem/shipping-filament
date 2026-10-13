@@ -14,14 +14,23 @@ use Filament\Pages\Page;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Contracts\Support\Htmlable;
 
 class ShippingDashboard extends Page
 {
     protected static string|BackedEnum|null $navigationIcon = Heroicon::ChartBar;
 
-    protected static ?string $navigationLabel = 'Dashboard';
+    protected static ?string $title = null;
 
-    protected static ?string $title = 'Shipping dashboard';
+    public static function getNavigationLabel(): string
+    {
+        return __('shipping-filament::nav.dashboard');
+    }
+
+    public function getTitle(): string|Htmlable
+    {
+        return __('shipping-filament::dashboard.title');
+    }
 
     public static function shouldRegisterNavigation(): bool
     {

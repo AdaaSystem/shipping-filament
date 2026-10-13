@@ -8,14 +8,18 @@ use Adaa\ShippingFilament\Resources\BaseShippingResource;
 use Adaa\ShippingFilament\Resources\ShippingShipmentResource;
 use Adaa\ShippingFilament\Support\ShippingDashboardData;
 use Filament\Widgets\DoughnutChartWidget;
+use Illuminate\Contracts\Support\Htmlable;
 
 class ShipmentsByStatusWidget extends DoughnutChartWidget
 {
-    protected ?string $heading = 'Shipments by status';
-
     public static function canView(): bool
     {
         return BaseShippingResource::isConfigured();
+    }
+
+    public function getHeading(): string|Htmlable|null
+    {
+        return __('shipping-filament::dashboard.by_status');
     }
 
     /**

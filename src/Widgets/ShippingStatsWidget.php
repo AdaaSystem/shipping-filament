@@ -28,24 +28,24 @@ class ShippingStatsWidget extends StatsOverviewWidget
         );
 
         return [
-            Stat::make('Shipments', number_format($stats['shipments']))
-                ->description('Total tracked shipments')
+            Stat::make(__('shipping-filament::dashboard.shipments'), number_format($stats['shipments']))
+                ->description(__('shipping-filament::dashboard.shipments_description'))
                 ->icon(Heroicon::Cube)
                 ->color('gray'),
-            Stat::make('Delivered', number_format($stats['delivered']))
-                ->description($stats['delivered_rate'].'% delivery rate')
+            Stat::make(__('shipping-filament::dashboard.delivered'), number_format($stats['delivered']))
+                ->description(__('shipping-filament::dashboard.delivered_description', ['rate' => $stats['delivered_rate']]))
                 ->icon(Heroicon::CheckBadge)
                 ->color('success'),
-            Stat::make('In transit', number_format($stats['in_transit']))
-                ->description('Currently moving')
+            Stat::make(__('shipping-filament::dashboard.in_transit'), number_format($stats['in_transit']))
+                ->description(__('shipping-filament::dashboard.in_transit_description'))
                 ->icon(Heroicon::Truck)
                 ->color('info'),
-            Stat::make('Failed', number_format($stats['failed']))
-                ->description('Needs attention')
+            Stat::make(__('shipping-filament::dashboard.failed'), number_format($stats['failed']))
+                ->description(__('shipping-filament::dashboard.failed_description'))
                 ->icon(Heroicon::ExclamationTriangle)
                 ->color('danger'),
-            Stat::make('Active connections', number_format($stats['active_connections']))
-                ->description('Platform + merchant accounts')
+            Stat::make(__('shipping-filament::dashboard.active_connections'), number_format($stats['active_connections']))
+                ->description(__('shipping-filament::dashboard.active_connections_description'))
                 ->icon(Heroicon::Link)
                 ->color('warning'),
         ];
